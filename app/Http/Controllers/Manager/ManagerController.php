@@ -5,8 +5,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\JournalEntry;
-use App\Models\AccountReceivable;
-use App\Models\AccountPayable;
+use App\Models\Invoice;
+use App\Models\Bill;
 use App\Models\ChartOfAccount;
 use Carbon\Carbon;
 
@@ -33,8 +33,8 @@ class ManagerController extends Controller
     {
         $cid = $this->companyId();
         $journals = JournalEntry::where('company_id',$cid)->where('status','pending')->get();
-        $invoices = AccountReceivable::where('company_id',$cid)->where('status','pending')->get();
-        $bills = AccountPayable::where('company_id',$cid)->where('status','pending')->get();
+        $invoices = Invoice::where('company_id',$cid)->where('status','pending')->get();
+        $bills = Bill::where('company_id',$cid)->where('status','pending')->get();
         $total = $journals->count() + $invoices->count() + $bills->count();
         return view('manager.approval_queue', compact('journals','invoices','bills','total'));
     }
@@ -44,8 +44,8 @@ class ManagerController extends Controller
         $cid = $this->companyId();
         $type = $request->get('type','journal');
         $pendingJournals = JournalEntry::where('company_id',$cid)->where('status','pending')->get();
-        $pendingInvoices = AccountReceivable::where('company_id',$cid)->where('status','pending')->get();
-        $pendingBills = AccountPayable::where('company_id',$cid)->where('status','pending')->get();
+        $pendingInvoices = Invoice::where('company_id',$cid)->where('status','pending')->get();
+        $pendingBills = Bill::where('company_id',$cid)->where('status','pending')->get();
         return view('manager.approve_reject_transaction', compact('type','pendingJournals','pendingInvoices','pendingBills'));
     }
 
@@ -53,8 +53,8 @@ class ManagerController extends Controller
     {
         $cid = $this->companyId();
         if ($type === 'journal') JournalEntry::where('company_id',$cid)->findOrFail($id)->update(['status'=>'approved','approved_by'=>Auth::id(),'approved_at'=>now()]);
-        elseif ($type === 'invoice') AccountReceivable::where('company_id',$cid)->findOrFail($id)->update(['status'=>'approved']);
-        elseif ($type === 'bill') AccountPayable::where('company_id',$cid)->findOrFail($id)->update(['status'=>'approved']);
+        elseif ($type === 'invoice') Invoice::where('company_id',$cid)->findOrFail($id)->update(['status'=>'approved']);
+        elseif ($type === 'bill') Bill::where('company_id',$cid)->findOrFail($id)->update(['status'=>'approved']);
         return back()->with('success', ucfirst($type).' approved.');
     }
 
@@ -63,8 +63,8 @@ class ManagerController extends Controller
         $cid = $this->companyId();
         $reason = $request->input('rejection_reason','No reason given');
         if ($type === 'journal') JournalEntry::where('company_id',$cid)->findOrFail($id)->update(['status'=>'rejected','rejected_by'=>Auth::id(),'rejected_at'=>now(),'rejection_reason'=>$reason]);
-        elseif ($type === 'invoice') AccountReceivable::where('company_id',$cid)->findOrFail($id)->update(['status'=>'rejected']);
-        elseif ($type === 'bill') AccountPayable::where('company_id',$cid)->findOrFail($id)->update(['status'=>'rejected']);
+        elseif ($type === 'invoice') Invoice::where('company_id',$cid)->findOrFail($id)->update(['status'=>'rejected']);
+        elseif ($type === 'bill') Bill::where('company_id',$cid)->findOrFail($id)->update(['status'=>'rejected']);
         return back()->with('success', ucfirst($type).' rejected.');
     }
 
@@ -95,8 +95,8 @@ class ManagerController extends Controller
         $cid = $this->companyId();
         $totalRevenue = 0; $totalExpenses = 0; $netProfit = 0;
         $approvedJournals = JournalEntry::where('company_id',$cid)->where('status','approved')->count();
-        $totalInvoices = AccountReceivable::where('company_id',$cid)->sum('total_amount');
-        $totalBills = AccountPayable::where('company_id',$cid)->sum('total_amount');
+        $totalInvoices = Invoice::where('company_id',$cid)->sum('total_amount');
+        $totalBills = Bill::where('company_id',$cid)->sum('total_amount');
         return view('manager.manager_reports_monitor', compact('totalRevenue','totalExpenses','netProfit','approvedJournals','totalInvoices','totalBills'));
     }
 
@@ -114,16 +114,16 @@ class ManagerController extends Controller
     public function arMonitor()
     {
         $cid = $this->companyId();
-        $invoices = AccountReceivable::where('company_id',$cid)->paginate(20);
-        $totalAR = AccountReceivable::where('company_id',$cid)->sum('balance_due');
+        $invoices = Invoice::where('company_id',$cid)->paginate(20);
+        $totalAR = Invoice::where('company_id',$cid)->sum('balance_due');
         return view('manager.manager_account_receivable_monitor', compact('invoices','totalAR'));
     }
 
     public function apMonitor()
     {
         $cid = $this->companyId();
-        $bills = AccountPayable::where('company_id',$cid)->paginate(20);
-        $totalAP = AccountPayable::where('company_id',$cid)->sum('balance_due');
+        $bills = Bill::where('company_id',$cid)->paginate(20);
+        $totalAP = Bill::where('company_id',$cid)->sum('balance_due');
         return view('manager.manager_account_payable_monitor', compact('bills','totalAP'));
     }
 
