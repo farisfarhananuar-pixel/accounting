@@ -134,6 +134,10 @@ class ManagerController extends Controller
         return view('manager.manager_chart_of_account', compact('accounts'));
     }
 
-    public function createRoles() { return view('manager.create_roles'); }
+    public function createRoles()
+    {
+        $users = \App\Models\User::where('company_id', $this->companyId())->get();
+        return view('manager.create_roles', compact('users'));
+    }
     public function storeRole(Request $request) { return back()->with('success','Role created.'); }
 }
