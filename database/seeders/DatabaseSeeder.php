@@ -15,107 +15,127 @@ class DatabaseSeeder extends Seeder
         // ========================
         // COMPANY 1: Demo Company
         // ========================
-        $company1 = Company::create([
-            'name' => 'ABC Trading Sdn Bhd',
-            'registration_number' => '202301001234',
-            'address' => 'No. 1, Jalan Ampang, 50450 Kuala Lumpur',
-            'phone' => '03-21234567',
-            'email' => 'info@abctrading.com',
-            'subscription_status' => 'active',
-        ]);
+        $company1 = Company::firstOrCreate(
+            ['registration_number' => '202301001234'],
+            [
+                'name' => 'ABC Trading Sdn Bhd',
+                'address' => 'No. 1, Jalan Ampang, 50450 Kuala Lumpur',
+                'phone' => '03-21234567',
+                'email' => 'info@abctrading.com',
+                'subscription_status' => 'active',
+            ]
+        );
 
         // Users for Company 1
-        User::create([
-            'company_id' => $company1->id,
-            'name' => 'Ahmad Rizal bin Hassan',
-            'username' => 'admin_abc',
-            'email' => 'admin@abctrading.com',
-            'password' => Hash::make('Admin@1234'),
-            'role' => 'admin',
-            'is_active' => true,
-        ]);
+        User::firstOrCreate(
+            ['username' => 'admin_abc'],
+            [
+                'company_id' => $company1->id,
+                'name' => 'Ahmad Rizal bin Hassan',
+                'email' => 'admin@abctrading.com',
+                'password' => Hash::make('Admin@1234'),
+                'role' => 'admin',
+                'is_active' => true,
+            ]
+        );
 
-        User::create([
-            'company_id' => $company1->id,
-            'name' => 'Siti Nurhaliza binti Aziz',
-            'username' => 'manager_abc',
-            'email' => 'manager@abctrading.com',
-            'password' => Hash::make('Manager@1234'),
-            'role' => 'manager',
-            'is_active' => true,
-        ]);
+        User::firstOrCreate(
+            ['username' => 'manager_abc'],
+            [
+                'company_id' => $company1->id,
+                'name' => 'Siti Nurhaliza binti Aziz',
+                'email' => 'manager@abctrading.com',
+                'password' => Hash::make('Manager@1234'),
+                'role' => 'manager',
+                'is_active' => true,
+            ]
+        );
 
-        User::create([
-            'company_id' => $company1->id,
-            'name' => 'Chong Wei Ming',
-            'username' => 'accountant_abc',
-            'email' => 'accountant@abctrading.com',
-            'password' => Hash::make('Account@1234'),
-            'role' => 'executive_accountant',
-            'is_active' => true,
-        ]);
+        User::firstOrCreate(
+            ['username' => 'accountant_abc'],
+            [
+                'company_id' => $company1->id,
+                'name' => 'Chong Wei Ming',
+                'email' => 'accountant@abctrading.com',
+                'password' => Hash::make('Account@1234'),
+                'role' => 'executive_accountant',
+                'is_active' => true,
+            ]
+        );
 
-        User::create([
-            'company_id' => $company1->id,
-            'name' => 'Rajendran s/o Muthu',
-            'username' => 'auditor_abc',
-            'email' => 'auditor@abctrading.com',
-            'password' => Hash::make('Auditor@1234'),
-            'role' => 'auditor',
-            'is_active' => true,
-        ]);
+        User::firstOrCreate(
+            ['username' => 'auditor_abc'],
+            [
+                'company_id' => $company1->id,
+                'name' => 'Rajendran s/o Muthu',
+                'email' => 'auditor@abctrading.com',
+                'password' => Hash::make('Auditor@1234'),
+                'role' => 'auditor',
+                'is_active' => true,
+            ]
+        );
 
         // ========================
         // COMPANY 2: Another Company (Multi-tenant demo)
         // ========================
-        $company2 = Company::create([
-            'name' => 'XYZ Solutions Sdn Bhd',
-            'registration_number' => '202301005678',
-            'address' => 'Unit 5-8, Menara KLCC, 50088 Kuala Lumpur',
-            'phone' => '03-23456789',
-            'email' => 'info@xyzsolutions.com',
-            'subscription_status' => 'active',
-        ]);
+        $company2 = Company::firstOrCreate(
+            ['registration_number' => '202301005678'],
+            [
+                'name' => 'XYZ Solutions Sdn Bhd',
+                'address' => 'Unit 5-8, Menara KLCC, 50088 Kuala Lumpur',
+                'phone' => '03-23456789',
+                'email' => 'info@xyzsolutions.com',
+                'subscription_status' => 'active',
+            ]
+        );
 
-        User::create([
-            'company_id' => $company2->id,
-            'name' => 'Lim Ah Kow',
-            'username' => 'admin_xyz',
-            'email' => 'admin@xyzsolutions.com',
-            'password' => Hash::make('Admin@5678'),
-            'role' => 'admin',
-            'is_active' => true,
-        ]);
+        User::firstOrCreate(
+            ['username' => 'admin_xyz'],
+            [
+                'company_id' => $company2->id,
+                'name' => 'Lim Ah Kow',
+                'email' => 'admin@xyzsolutions.com',
+                'password' => Hash::make('Admin@5678'),
+                'role' => 'admin',
+                'is_active' => true,
+            ]
+        );
 
-        User::create([
-            'company_id' => $company2->id,
-            'name' => 'Farah binti Kamarudin',
-            'username' => 'manager_xyz',
-            'email' => 'manager@xyzsolutions.com',
-            'password' => Hash::make('Manager@5678'),
-            'role' => 'manager',
-            'is_active' => true,
-        ]);
+        User::firstOrCreate(
+            ['username' => 'manager_xyz'],
+            [
+                'company_id' => $company2->id,
+                'name' => 'Farah binti Kamarudin',
+                'email' => 'manager@xyzsolutions.com',
+                'password' => Hash::make('Manager@5678'),
+                'role' => 'manager',
+                'is_active' => true,
+            ]
+        );
 
-        User::create([
-            'company_id' => $company2->id,
-            'name' => 'Kevin Tan Boon Hock',
-            'username' => 'accountant_xyz',
-            'email' => 'accountant@xyzsolutions.com',
-            'password' => Hash::make('Account@5678'),
-            'role' => 'executive_accountant',
-            'is_active' => true,
-        ]);
+        User::firstOrCreate(
+            ['username' => 'accountant_xyz'],
+            [
+                'company_id' => $company2->id,
+                'name' => 'Kevin Tan Boon Hock',
+                'email' => 'accountant@xyzsolutions.com',
+                'password' => Hash::make('Account@5678'),
+                'role' => 'executive_accountant',
+                'is_active' => true,
+            ]
+        );
 
-        User::create([
-            'company_id' => $company2->id,
-            'name' => 'Priya a/p Subramaniam',
-            'username' => 'auditor_xyz',
-            'email' => 'auditor@xyzsolutions.com',
-            'password' => Hash::make('Auditor@5678'),
-            'role' => 'auditor',
-            'is_active' => true,
-        ]);
+        User::firstOrCreate(
+            ['username' => 'auditor_xyz'],
+            [
+                'company_id' => $company2->id,
+                'name' => 'Priya a/p Subramaniam',
+                'email' => 'auditor@xyzsolutions.com',
+                'password' => Hash::make('Auditor@5678'),
+                'role' => 'auditor',
+                'is_active' => true,
+            ]
+        );
 
         // Seed default Chart of Accounts for Company 1
         $this->seedChartOfAccounts($company1->id);
@@ -183,14 +203,18 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($accounts as $acc) {
-            ChartOfAccount::create([
-                'company_id' => $companyId,
-                'account_code' => $acc['code'],
-                'account_name' => $acc['name'],
-                'account_type' => $acc['type'],
-                'account_category' => $acc['category'],
-                'is_active' => true,
-            ]);
+            ChartOfAccount::firstOrCreate(
+                [
+                    'company_id'   => $companyId,
+                    'account_code' => $acc['code'],
+                ],
+                [
+                    'account_name'     => $acc['name'],
+                    'account_type'     => $acc['type'],
+                    'account_category' => $acc['category'],
+                    'is_active'        => true,
+                ]
+            );
         }
     }
 }
