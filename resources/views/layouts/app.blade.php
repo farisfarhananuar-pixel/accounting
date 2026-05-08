@@ -373,6 +373,60 @@
         .header-user-info .name { font-size: 0.82rem; font-weight: 600; color: #1f2937; }
         .header-user-info .role { font-size: 0.7rem; color: #9ca3af; }
 
+        /* Notification dropdown */
+        .notif-dropdown {
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            width: 320px;
+            background: white;
+            border-radius: 14px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+            border: 1px solid #e5e7eb;
+            z-index: 9999;
+            display: none;
+        }
+        .notif-dropdown.show { display: block; }
+        .notif-header { padding: 14px 18px; border-bottom: 1px solid #f3f4f6; display:flex; justify-content:space-between; align-items:center; }
+        .notif-header h6 { margin:0; font-size:.85rem; font-weight:700; color:var(--green-dark); }
+        .notif-item { padding: 12px 18px; border-bottom: 1px solid #f9fafb; display:flex; gap:12px; align-items:flex-start; transition:background .15s; }
+        .notif-item:hover { background:#f9fafb; }
+        .notif-item:last-child { border-bottom: none; }
+        .notif-icon { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:.85rem; flex-shrink:0; }
+        .notif-text { font-size:.78rem; color:#374151; line-height:1.4; }
+        .notif-time { font-size:.7rem; color:#9ca3af; margin-top:2px; }
+        .notif-empty { padding:28px; text-align:center; color:#9ca3af; font-size:.82rem; }
+
+        /* Profile dropdown */
+        .profile-dropdown {
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            width: 220px;
+            background: white;
+            border-radius: 14px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+            border: 1px solid #e5e7eb;
+            z-index: 9999;
+            display: none;
+        }
+        .profile-dropdown.show { display: block; }
+        .profile-dropdown-header { padding:16px; border-bottom:1px solid #f3f4f6; text-align:center; }
+        .profile-dropdown-avatar { width:56px; height:56px; border-radius:12px; margin:0 auto 8px; overflow:hidden; }
+        .profile-dropdown-avatar img { width:100%; height:100%; object-fit:cover; }
+        .profile-dropdown-avatar .initials { width:100%; height:100%; background:linear-gradient(135deg,var(--green-main),var(--green-dark)); display:flex; align-items:center; justify-content:center; font-size:1.1rem; font-weight:700; color:white; }
+        .profile-dropdown-name { font-size:.85rem; font-weight:700; color:#1f2937; }
+        .profile-dropdown-role { font-size:.72rem; color:#9ca3af; }
+        .profile-dropdown-item { padding:10px 16px; display:flex; align-items:center; gap:10px; font-size:.82rem; color:#374151; text-decoration:none; transition:background .15s; cursor:pointer; border:none; background:none; width:100%; text-align:left; font-family:'Poppins',sans-serif; }
+        .profile-dropdown-item:hover { background:#f9fafb; color:var(--green-dark); }
+        .profile-dropdown-item i { width:18px; color:#9ca3af; }
+        .profile-dropdown-item:hover i { color:var(--green-main); }
+        .profile-dropdown-divider { height:1px; background:#f3f4f6; margin:4px 0; }
+
+        /* Header avatar with photo */
+        .header-avatar img { width:100%; height:100%; object-fit:cover; border-radius:8px; }
+        .sidebar-user-avatar img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
+
         /* =========== PAGE CONTENT =========== */
         .page-content {
             flex: 1;
@@ -571,7 +625,13 @@
 
         <!-- User Info -->
         <div class="sidebar-user">
-            <div class="user-avatar">{{ strtoupper(substr(auth()->user()->name, 0, 2)) }}</div>
+            <div class="user-avatar" style="overflow:hidden">
+                @if(auth()->user()->profile_photo)
+                    <img src="{{ asset('storage/'.auth()->user()->profile_photo) }}" alt="avatar" style="width:100%;height:100%;object-fit:cover;border-radius:50%">
+                @else
+                    {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
+                @endif
+            </div>
             <div class="user-info">
                 <h6>{{ auth()->user()->name }}</h6>
                 @php
@@ -627,15 +687,60 @@
                 </div>
             </div>
             <div class="header-right">
-                <button class="header-btn" title="Notifications">
-                    <i class="fas fa-bell"></i>
-                    <span class="badge-dot"></span>
-                </button>
-                <div class="header-user">
-                    <div class="header-avatar">{{ strtoupper(substr(auth()->user()->name, 0, 2)) }}</div>
-                    <div class="header-user-info d-none d-sm-block">
-                        <div class="name">{{ explode(' ', auth()->user()->name)[0] }}</div>
-                        <div class="role">{{ auth()->user()->role_label }}</div>
+                <!-- Notification Bell -->
+                <div style="position:relative">
+                    <button class="header-btn" id="notifBtn" title="Notifications" onclick="toggleNotif(event)">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge-dot" id="notifDot"></span>
+                    </button>
+                    <div class="notif-dropdown" id="notifDropdown">
+                        <div class="notif-header">
+                            <h6><i class="fas fa-bell me-2"></i>Notifications</h6>
+                            <span style="font-size:.72rem;color:var(--green-main);cursor:pointer" onclick="markAllRead()">Mark all read</span>
+                        </div>
+                        <div id="notifList">
+                            <div class="notif-empty"><i class="fas fa-check-circle fa-2x d-block mb-2" style="color:#d1fae5"></i>All caught up!</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Profile -->
+                <div style="position:relative">
+                    <div class="header-user" id="profileBtn" onclick="toggleProfile(event)">
+                        <div class="header-avatar" style="overflow:hidden">
+                            @if(auth()->user()->profile_photo)
+                                <img src="{{ asset('storage/'.auth()->user()->profile_photo) }}" alt="avatar">
+                            @else
+                                {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
+                            @endif
+                        </div>
+                        <div class="header-user-info d-none d-sm-block">
+                            <div class="name">{{ explode(' ', auth()->user()->name)[0] }}</div>
+                            <div class="role">{{ auth()->user()->role_label }}</div>
+                        </div>
+                    </div>
+                    <div class="profile-dropdown" id="profileDropdown">
+                        <div class="profile-dropdown-header">
+                            <div class="profile-dropdown-avatar">
+                                @if(auth()->user()->profile_photo)
+                                    <img src="{{ asset('storage/'.auth()->user()->profile_photo) }}" alt="avatar">
+                                @else
+                                    <div class="initials">{{ strtoupper(substr(auth()->user()->name, 0, 2)) }}</div>
+                                @endif
+                            </div>
+                            <div class="profile-dropdown-name">{{ auth()->user()->name }}</div>
+                            <div class="profile-dropdown-role">{{ auth()->user()->role_label }}</div>
+                        </div>
+                        <button class="profile-dropdown-item" onclick="openPhotoModal()">
+                            <i class="fas fa-camera"></i> Change Photo
+                        </button>
+                        <div class="profile-dropdown-divider"></div>
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit" class="profile-dropdown-item" style="color:#dc2626">
+                                <i class="fas fa-sign-out-alt" style="color:#dc2626"></i> Logout
+                            </button>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -646,6 +751,57 @@
             @yield('content')
         </main>
     </div>
+
+    <!-- Profile Photo Upload Modal -->
+    <div class="modal fade" id="photoModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered" style="max-width:400px">
+            <div class="modal-content" style="border-radius:16px;border:none;box-shadow:0 20px 60px rgba(0,0,0,0.15)">
+                <div class="modal-header" style="border-bottom:1px solid #f3f4f6;padding:18px 22px">
+                    <h5 class="modal-title" style="font-size:.95rem;font-weight:700;color:var(--green-dark)">
+                        <i class="fas fa-camera me-2"></i>Update Profile Photo
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <!-- Preview -->
+                    <div class="text-center mb-4">
+                        <div id="photoPreviewWrap" style="width:100px;height:100px;border-radius:50%;margin:0 auto;overflow:hidden;background:linear-gradient(135deg,var(--green-main),var(--green-dark));display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:700;color:white;border:3px solid var(--green-pale)">
+                            @if(auth()->user()->profile_photo)
+                                <img id="photoPreview" src="{{ asset('storage/'.auth()->user()->profile_photo) }}" style="width:100%;height:100%;object-fit:cover">
+                            @else
+                                <span id="photoInitials">{{ strtoupper(substr(auth()->user()->name, 0, 2)) }}</span>
+                            @endif
+                        </div>
+                    </div>
+                    <form method="POST" action="{{ route('profile.photo') }}" enctype="multipart/form-data" id="photoUploadForm">
+                        @csrf
+                        @method('POST')
+                        <div class="mb-3">
+                            <label class="form-label" style="font-size:.82rem;font-weight:600;color:#374151">Choose from Gallery</label>
+                            <input type="file" name="photo" id="photoInput" class="form-control" accept="image/jpeg,image/png,image/gif,image/webp" onchange="previewPhoto(this)" required>
+                            <div style="font-size:.72rem;color:#9ca3af;margin-top:6px">JPG, PNG, GIF or WEBP. Max 2MB.</div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-green flex-fill py-2">
+                                <i class="fas fa-upload me-2"></i>Upload Photo
+                            </button>
+                            @if(auth()->user()->profile_photo)
+                            <button type="button" class="btn btn-outline-secondary px-3 py-2" onclick="removePhoto()">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            @endif
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Remove Photo Form (hidden) -->
+    <form method="POST" action="{{ route('profile.photo.remove') }}" id="removePhotoForm" style="display:none">
+        @csrf
+        @method('DELETE')
+    </form>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
     <script>
@@ -662,6 +818,83 @@
                 link.classList.add('active');
             }
         });
+
+        // Notification dropdown
+        function toggleNotif(e) {
+            e.stopPropagation();
+            document.getElementById('profileDropdown').classList.remove('show');
+            document.getElementById('notifDropdown').classList.toggle('show');
+        }
+
+        // Profile dropdown
+        function toggleProfile(e) {
+            e.stopPropagation();
+            document.getElementById('notifDropdown').classList.remove('show');
+            document.getElementById('profileDropdown').classList.toggle('show');
+        }
+
+        // Close dropdowns on outside click
+        document.addEventListener('click', function() {
+            document.getElementById('notifDropdown').classList.remove('show');
+            document.getElementById('profileDropdown').classList.remove('show');
+        });
+
+        // Mark all notifications as read
+        function markAllRead() {
+            document.getElementById('notifDot').style.display = 'none';
+            document.getElementById('notifList').innerHTML = '<div class="notif-empty"><i class="fas fa-check-circle fa-2x d-block mb-2" style="color:#d1fae5"></i>All caught up!</div>';
+        }
+
+        // Profile photo modal
+        function openPhotoModal() {
+            document.getElementById('profileDropdown').classList.remove('show');
+            new bootstrap.Modal(document.getElementById('photoModal')).show();
+        }
+
+        // Preview selected photo
+        function previewPhoto(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const wrap = document.getElementById('photoPreviewWrap');
+                    wrap.innerHTML = `<img id="photoPreview" src="${e.target.result}" style="width:100%;height:100%;object-fit:cover">`;
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // Remove photo
+        function removePhoto() {
+            if (confirm('Remove profile photo?')) {
+                document.getElementById('removePhotoForm').submit();
+            }
+        }
+
+        // Load notifications (pending approvals etc)
+        @if(auth()->check())
+        fetch('{{ route("notifications.get") }}', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(r => r.json())
+            .then(data => {
+                if (data.notifications && data.notifications.length > 0) {
+                    document.getElementById('notifDot').style.display = 'block';
+                    let html = '';
+                    data.notifications.forEach(n => {
+                        html += `<div class="notif-item">
+                            <div class="notif-icon" style="background:${n.bg}"><i class="fas ${n.icon}" style="color:${n.color}"></i></div>
+                            <div>
+                                <div class="notif-text">${n.message}</div>
+                                <div class="notif-time">${n.time}</div>
+                            </div>
+                        </div>`;
+                    });
+                    document.getElementById('notifList').innerHTML = html;
+                } else {
+                    document.getElementById('notifDot').style.display = 'none';
+                }
+            }).catch(() => {
+                document.getElementById('notifDot').style.display = 'none';
+            });
+        @endif
     </script>
     @stack('scripts')
 </body>

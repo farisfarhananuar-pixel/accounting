@@ -2,10 +2,13 @@
 // routes/web.php
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Manager\ManagerController;
 use App\Http\Controllers\Accountant\AccountantController;
 use App\Http\Controllers\Auditor\AuditorController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Developer\DeveloperController;
 
 /*
 |--------------------------------------------------------------------------
@@ -22,6 +25,40 @@ Route::get('/forgot-password', [LoginController::class, 'showForgotPassword'])->
 Route::post('/forgot-password', [LoginController::class, 'sendResetLink'])->name('password.email');
 Route::get('/reset-password/{token}', [LoginController::class, 'showResetPassword'])->name('password.reset');
 Route::post('/reset-password', [LoginController::class, 'resetPassword'])->name('password.update');
+
+// Company Registration
+Route::get('/register', [RegisterController::class, 'showRegister'])->name('register');
+Route::post('/register', [RegisterController::class, 'register'])->name('register.post');
+Route::get('/register/pending', [RegisterController::class, 'pending'])->name('register.pending');
+
+/*
+|--------------------------------------------------------------------------
+| Developer Portal Routes
+|--------------------------------------------------------------------------
+*/
+Route::prefix('developer')->name('developer.')->group(function () {
+    Route::get('/login', [DeveloperController::class, 'showLogin'])->name('login');
+    Route::post('/login', [DeveloperController::class, 'login'])->name('login.post');
+    Route::get('/logout', [DeveloperController::class, 'logout'])->name('logout');
+
+    Route::middleware(['developer'])->group(function () {
+        Route::get('/dashboard', [DeveloperController::class, 'dashboard'])->name('dashboard');
+        Route::post('/payments/{id}/approve', [DeveloperController::class, 'approvePayment'])->name('approve_payment');
+        Route::post('/payments/{id}/reject', [DeveloperController::class, 'rejectPayment'])->name('reject_payment');
+        Route::post('/update-qr', [DeveloperController::class, 'updateQr'])->name('update_qr');
+    });
+});
+
+/*
+|--------------------------------------------------------------------------
+| Profile Routes (authenticated)
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth'])->group(function () {
+    Route::post('/profile/photo', [ProfileController::class, 'updatePhoto'])->name('profile.photo');
+    Route::delete('/profile/photo', [ProfileController::class, 'removePhoto'])->name('profile.photo.remove');
+    Route::get('/notifications', [ProfileController::class, 'getNotifications'])->name('notifications.get');
+});
 
 /*
 |--------------------------------------------------------------------------

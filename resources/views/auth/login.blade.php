@@ -523,6 +523,16 @@
             </button>
         </form>
 
+        {{-- Register & Developer links --}}
+        <div style="margin-top:20px;display:flex;justify-content:space-between;align-items:center;font-size:.78rem">
+            <a href="{{ route('register') }}" style="color:var(--green-main);font-weight:600;text-decoration:none">
+                <i class="fas fa-building me-1"></i>Register New Company
+            </a>
+            <a href="{{ route('developer.login') }}" style="color:#9ca3af;text-decoration:none;font-size:.72rem">
+                <i class="fas fa-code me-1"></i>Developer Portal
+            </a>
+        </div>
+
         <div class="divider">Demo Credentials</div>
 
         <div class="demo-credentials">
