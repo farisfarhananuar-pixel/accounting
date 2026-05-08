@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class ProfileController extends Controller
 {
@@ -15,13 +14,13 @@ class ProfileController extends Controller
 
         $user = auth()->user();
 
-        // Delete old photo if exists
-        if ($user->profile_photo) {
-            Storage::disk('public')->delete($user->profile_photo);
-        }
+        $result = cloudinary()->upload($request->file('photo')->getRealPath(), [
+            'folder' => 'profile_photos',
+            'public_id' => 'user_' . $user->id,
+            'overwrite' => true,
+        ]);
 
-        $path = $request->file('photo')->store('profile_photos', 'public');
-        $user->update(['profile_photo' => $path]);
+        $user->update(['profile_photo' => $result->getSecurePath()]);
 
         return back()->with('success', 'Profile photo updated successfully!');
     }
@@ -31,7 +30,6 @@ class ProfileController extends Controller
         $user = auth()->user();
 
         if ($user->profile_photo) {
-            Storage::disk('public')->delete($user->profile_photo);
             $user->update(['profile_photo' => null]);
         }
 
@@ -44,7 +42,6 @@ class ProfileController extends Controller
         $notifications = [];
 
         if ($user->isAccountant()) {
-            // Rejected journal entries
             $rejected = \App\Models\JournalEntry::where('company_id', $user->company_id)
                 ->where('created_by', $user->id)
                 ->where('status', 'rejected')
@@ -61,7 +58,6 @@ class ProfileController extends Controller
                 ];
             }
 
-            // Overdue invoices
             $overdue = \App\Models\Invoice::where('company_id', $user->company_id)
                 ->where('due_date', '<', now())
                 ->whereNotIn('status', ['paid', 'draft'])
@@ -79,7 +75,6 @@ class ProfileController extends Controller
         }
 
         if ($user->isManager()) {
-            // Pending approvals
             $pending = \App\Models\JournalEntry::where('company_id', $user->company_id)
                 ->where('status', 'pending')
                 ->count();
@@ -96,7 +91,6 @@ class ProfileController extends Controller
         }
 
         if ($user->isAdmin()) {
-            // Pending subscription payments (developer approval)
             $pendingPayments = \App\Models\SubscriptionPayment::where('status', 'pending')->count();
             if ($pendingPayments > 0) {
                 $notifications[] = [

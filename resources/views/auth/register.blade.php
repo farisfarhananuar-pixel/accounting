@@ -120,7 +120,7 @@
                     <div class="qr-section">
                         <div class="amount-badge">RM 50.00</div>
                         @if($qrImage)
-                            <img src="{{ asset('storage/'.$qrImage) }}" class="qr-img" alt="Bank QR Code">
+                            <img src="{{ $qrImage }}" class="qr-img" alt="Bank QR Code">
                             <p style="font-size:.82rem;font-weight:600;color:#065f46">Scan QR to pay RM50</p>
                         @else
                             <div class="qr-placeholder">

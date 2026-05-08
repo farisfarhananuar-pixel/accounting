@@ -93,7 +93,7 @@
         <div class="qr-section">
             <div>
                 @if($qrImage)
-                    <img src="{{ asset('storage/'.$qrImage) }}" class="qr-preview" alt="QR Code">
+                    <img src="{{ $qrImage }}" class="qr-preview" alt="QR Code">
                     <div style="font-size:.72rem;color:rgba(255,255,255,0.4);margin-top:8px;text-align:center">Current QR shown on registration page</div>
                 @else
                     <div class="qr-placeholder">
@@ -135,7 +135,7 @@
                         <td>{{ $p->created_at->format('d/m/Y H:i') }}</td>
                         <td>
                             @if($p->receipt_path)
-                                <img src="{{ asset('storage/'.$p->receipt_path) }}" class="receipt-thumb" onclick="viewReceipt('{{ asset('storage/'.$p->receipt_path) }}')" title="Click to view">
+                                <img src="{{ $p->receipt_path }}" class="receipt-thumb" onclick="viewReceipt('{{ $p->receipt_path }}')" title="Click to view">
                             @else
                                 <span style="color:rgba(255,255,255,0.3);font-size:.75rem">No receipt</span>
                             @endif

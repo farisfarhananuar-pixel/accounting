@@ -8,14 +8,12 @@ use App\Models\User;
 use App\Models\SubscriptionPayment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 
 class RegisterController extends Controller
 {
     public function showRegister()
     {
-        // Get QR code image from developer settings
         $qrImage = DB::table('developer_settings')->where('key', 'qr_image')->value('value');
         return view('auth.register', compact('qrImage'));
     }
@@ -36,18 +34,16 @@ class RegisterController extends Controller
         ]);
 
         DB::transaction(function () use ($request) {
-            // Create company (inactive until payment approved)
             $company = Company::create([
                 'name'                => $request->company_name,
                 'registration_number' => $request->registration_number,
                 'address'             => $request->company_address,
                 'phone'               => $request->company_phone,
                 'email'               => $request->company_email,
-                'subscription_status' => 'inactive', // activated after approval
+                'subscription_status' => 'inactive',
                 'payment_verified'    => false,
             ]);
 
-            // Create admin user (inactive until payment approved)
             User::create([
                 'company_id' => $company->id,
                 'name'       => $request->admin_name,
@@ -55,13 +51,17 @@ class RegisterController extends Controller
                 'email'      => $request->admin_email,
                 'password'   => Hash::make($request->admin_password),
                 'role'       => 'admin',
-                'is_active'  => false, // activated after approval
+                'is_active'  => false,
             ]);
 
-            // Store payment receipt
-            $receiptPath = $request->file('payment_receipt')->store('payment_receipts', 'public');
+            // Store payment receipt via Cloudinary
+            $receiptResult = cloudinary()->upload($request->file('payment_receipt')->getRealPath(), [
+                'folder'     => 'payment_receipts',
+                'public_id'  => 'receipt_' . time(),
+                'overwrite'  => false,
+            ]);
+            $receiptPath = $receiptResult->getSecurePath();
 
-            // Create subscription payment record
             SubscriptionPayment::create([
                 'company_id'    => $company->id,
                 'company_name'  => $request->company_name,

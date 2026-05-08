@@ -627,7 +627,7 @@
         <div class="sidebar-user">
             <div class="user-avatar" style="overflow:hidden">
                 @if(auth()->user()->profile_photo)
-                    <img src="{{ asset('storage/'.auth()->user()->profile_photo) }}" alt="avatar" style="width:100%;height:100%;object-fit:cover;border-radius:50%">
+                    <img src="{{ auth()->user()->profile_photo }}" alt="avatar" style="width:100%;height:100%;object-fit:cover;border-radius:50%">
                 @else
                     {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
                 @endif
@@ -709,7 +709,7 @@
                     <div class="header-user" id="profileBtn" onclick="toggleProfile(event)">
                         <div class="header-avatar" style="overflow:hidden">
                             @if(auth()->user()->profile_photo)
-                                <img src="{{ asset('storage/'.auth()->user()->profile_photo) }}" alt="avatar">
+                                <img src="{{ auth()->user()->profile_photo }}" alt="avatar">
                             @else
                                 {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
                             @endif
@@ -723,7 +723,7 @@
                         <div class="profile-dropdown-header">
                             <div class="profile-dropdown-avatar">
                                 @if(auth()->user()->profile_photo)
-                                    <img src="{{ asset('storage/'.auth()->user()->profile_photo) }}" alt="avatar">
+                                    <img src="{{ auth()->user()->profile_photo }}" alt="avatar">
                                 @else
                                     <div class="initials">{{ strtoupper(substr(auth()->user()->name, 0, 2)) }}</div>
                                 @endif
@@ -767,7 +767,7 @@
                     <div class="text-center mb-4">
                         <div id="photoPreviewWrap" style="width:100px;height:100px;border-radius:50%;margin:0 auto;overflow:hidden;background:linear-gradient(135deg,var(--green-main),var(--green-dark));display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:700;color:white;border:3px solid var(--green-pale)">
                             @if(auth()->user()->profile_photo)
-                                <img id="photoPreview" src="{{ asset('storage/'.auth()->user()->profile_photo) }}" style="width:100%;height:100%;object-fit:cover">
+                                <img id="photoPreview" src="{{ auth()->user()->profile_photo }}" style="width:100%;height:100%;object-fit:cover">
                             @else
                                 <span id="photoInitials">{{ strtoupper(substr(auth()->user()->name, 0, 2)) }}</span>
                             @endif

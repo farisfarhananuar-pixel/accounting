@@ -9,14 +9,12 @@ use App\Models\SubscriptionPayment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class DeveloperController extends Controller
 {
-    // Developer credentials (hardcoded for simplicity — change these!)
-    const DEV_USERNAME = 'developer';
-    const DEV_PASSWORD = 'AccountEasy@Dev2025';
+    private function devUsername(): string { return env('DEV_USERNAME', 'developer'); }
+    private function devPassword(): string { return env('DEV_PASSWORD', ''); }
 
     public function showLogin()
     {
@@ -33,7 +31,7 @@ class DeveloperController extends Controller
             'password' => 'required',
         ]);
 
-        if ($request->username === self::DEV_USERNAME && $request->password === self::DEV_PASSWORD) {
+        if ($request->username === $this->devUsername() && $request->password === $this->devPassword()) {
             session(['developer_logged_in' => true]);
             return redirect()->route('developer.dashboard');
         }
@@ -55,7 +53,6 @@ class DeveloperController extends Controller
         $totalCompanies = Company::count();
         $activeCompanies = Company::where('subscription_status', 'active')->count();
 
-        // Get current QR image
         $qrImage = \DB::table('developer_settings')->where('key', 'qr_image')->value('value');
 
         return view('developer.dashboard', compact(
@@ -68,7 +65,6 @@ class DeveloperController extends Controller
     {
         $payment = SubscriptionPayment::findOrFail($id);
 
-        // Activate the company
         if ($payment->company_id) {
             Company::where('id', $payment->company_id)->update([
                 'subscription_status' => 'active',
@@ -104,11 +100,12 @@ class DeveloperController extends Controller
             'qr_image' => 'required|image|mimes:jpeg,png,gif,webp|max:5120',
         ]);
 
-        // Delete old QR
-        $old = \DB::table('developer_settings')->where('key', 'qr_image')->value('value');
-        if ($old) Storage::disk('public')->delete($old);
-
-        $path = $request->file('qr_image')->store('developer', 'public');
+        $result = cloudinary()->upload($request->file('qr_image')->getRealPath(), [
+            'folder' => 'developer',
+            'public_id' => 'qr_code',
+            'overwrite' => true,
+        ]);
+        $path = $result->getSecurePath();
 
         \DB::table('developer_settings')->updateOrInsert(
             ['key' => 'qr_image'],
