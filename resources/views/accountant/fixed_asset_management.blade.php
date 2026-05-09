@@ -6,6 +6,8 @@
 @section('sidebar_nav')
 <a href="{{ route('accountant.dashboard') }}" class="nav-item-link"><span class="nav-icon"><i class="fas fa-th-large"></i></span> Dashboard</a>
 <a href="{{ route('accountant.fixed_asset') }}" class="nav-item-link active"><span class="nav-icon"><i class="fas fa-building"></i></span> Fixed Assets</a>
+<a href="{{ route('accountant.customers') }}" class="nav-item-link"><span class="nav-icon"><i class="fas fa-users"></i></span> Customers</a>
+<a href="{{ route('accountant.vendors') }}" class="nav-item-link"><span class="nav-icon"><i class="fas fa-truck"></i></span> Vendors</a>
 <a href="{{ route('accountant.chart_of_account') }}" class="nav-item-link"><span class="nav-icon"><i class="fas fa-list-alt"></i></span> Chart of Accounts</a>
 @endsection
 @section('content')

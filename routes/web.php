@@ -128,6 +128,20 @@ Route::middleware(['auth', 'role:executive_accountant', 'company.scope'])->prefi
     Route::get('/account-payable/{id}', [AccountantController::class, 'showBill'])->name('account_payable.show');
     Route::post('/account-payable/{id}/payment', [AccountantController::class, 'recordBillPayment'])->name('account_payable.payment');
 
+    // Customers
+    Route::get('/customers', [AccountantController::class, 'customers'])->name('customers');
+    Route::post('/customers', [AccountantController::class, 'storeCustomer'])->name('customers.store');
+    Route::post('/customers/quick-add', [AccountantController::class, 'quickAddCustomer'])->name('customers.quick_add');
+    Route::put('/customers/{id}', [AccountantController::class, 'updateCustomer'])->name('customers.update');
+    Route::delete('/customers/{id}', [AccountantController::class, 'deleteCustomer'])->name('customers.delete');
+
+    // Vendors
+    Route::get('/vendors', [AccountantController::class, 'vendors'])->name('vendors');
+    Route::post('/vendors', [AccountantController::class, 'storeVendor'])->name('vendors.store');
+    Route::post('/vendors/quick-add', [AccountantController::class, 'quickAddVendor'])->name('vendors.quick_add');
+    Route::put('/vendors/{id}', [AccountantController::class, 'updateVendor'])->name('vendors.update');
+    Route::delete('/vendors/{id}', [AccountantController::class, 'deleteVendor'])->name('vendors.delete');
+
     // Chart of Account
     Route::get('/chart-of-account', [AccountantController::class, 'chartOfAccount'])->name('chart_of_account');
     Route::post('/chart-of-account', [AccountantController::class, 'storeAccount'])->name('chart_of_account.store');

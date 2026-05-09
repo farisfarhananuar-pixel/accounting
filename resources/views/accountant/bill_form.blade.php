@@ -7,6 +7,8 @@
 <a href="{{ route('accountant.journal_entries') }}" class="nav-item-link"><span class="nav-icon"><i class="fas fa-book"></i></span> Journal Entries</a>
 <a href="{{ route('accountant.account_receivable') }}" class="nav-item-link"><span class="nav-icon"><i class="fas fa-file-invoice-dollar"></i></span> Account Receivable</a>
 <a href="{{ route('accountant.account_payable') }}" class="nav-item-link active"><span class="nav-icon"><i class="fas fa-receipt"></i></span> Account Payable</a>
+<a href="{{ route('accountant.customers') }}" class="nav-item-link"><span class="nav-icon"><i class="fas fa-users"></i></span> Customers</a>
+<a href="{{ route('accountant.vendors') }}" class="nav-item-link"><span class="nav-icon"><i class="fas fa-truck"></i></span> Vendors</a>
 <a href="{{ route('accountant.chart_of_account') }}" class="nav-item-link"><span class="nav-icon"><i class="fas fa-list-alt"></i></span> Chart of Accounts</a>
 @endsection
 
@@ -38,12 +40,20 @@
             <div class="row g-3">
                 <div class="col-md-6">
                     <label class="form-label" style="font-size:.8rem;font-weight:600;color:#374151">Vendor <span class="text-danger">*</span></label>
-                    <select name="vendor_id" class="form-select" required>
-                        <option value="">-- Select Vendor --</option>
-                        @foreach($vendors as $v)
-                        <option value="{{ $v->id }}" {{ old('vendor_id')==$v->id?'selected':'' }}>{{ $v->name }}</option>
-                        @endforeach
-                    </select>
+                    <div class="d-flex gap-2">
+                        <select name="vendor_id" id="vendorSelect" class="form-select" required>
+                            <option value="">-- Select Vendor --</option>
+                            @foreach($vendors as $v)
+                            <option value="{{ $v->id }}" {{ old('vendor_id')==$v->id?'selected':'' }}>{{ $v->name }}</option>
+                            @endforeach
+                        </select>
+                        <button type="button" onclick="document.getElementById('quickAddVendorModal').style.display='flex'"
+                            class="btn btn-sm flex-shrink-0"
+                            style="background:#f5f3ff;color:#7c3aed;border:1px solid #ddd6fe;border-radius:8px;white-space:nowrap;font-weight:600"
+                            title="Add new vendor">
+                            <i class="fas fa-plus"></i> New
+                        </button>
+                    </div>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label" style="font-size:.8rem;font-weight:600;color:#374151">Bill Number</label>
@@ -130,10 +140,82 @@
     </div>
 </div>
 </form>
+
+{{-- Quick Add Vendor Modal --}}
+<div id="quickAddVendorModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.45);align-items:center;justify-content:center">
+    <div style="background:#fff;border-radius:16px;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,.25);margin:16px">
+        <div style="padding:20px 24px 16px;border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center">
+            <h6 style="margin:0;font-weight:700;color:#4c1d95"><i class="fas fa-truck me-2" style="color:#7c3aed"></i>Add New Vendor</h6>
+            <button type="button" onclick="document.getElementById('quickAddVendorModal').style.display='none';document.getElementById('qav-form').reset();document.getElementById('qav-error').textContent=''" style="background:none;border:none;font-size:1.2rem;color:#9ca3af;cursor:pointer">&times;</button>
+        </div>
+        <div style="padding:20px 24px">
+            <p style="font-size:.82rem;color:#6b7280;margin-bottom:16px">Vendor will be added and automatically selected.</p>
+            <div id="qav-error" style="color:#dc2626;font-size:.82rem;margin-bottom:10px;font-weight:600"></div>
+            <form id="qav-form">
+                <div class="mb-3">
+                    <label class="form-label" style="font-size:.82rem;font-weight:600">Vendor Name <span class="text-danger">*</span></label>
+                    <input type="text" id="qav-name" class="form-control" placeholder="e.g. Pembekal XYZ Sdn Bhd">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" style="font-size:.82rem;font-weight:600">Email</label>
+                    <input type="email" id="qav-email" class="form-control" placeholder="vendor@email.com">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" style="font-size:.82rem;font-weight:600">Phone</label>
+                    <input type="text" id="qav-phone" class="form-control" placeholder="e.g. 03-1234 5678">
+                </div>
+            </form>
+        </div>
+        <div style="padding:12px 24px 20px;display:flex;gap:10px;justify-content:flex-end">
+            <button type="button" onclick="document.getElementById('quickAddVendorModal').style.display='none';document.getElementById('qav-form').reset();document.getElementById('qav-error').textContent=''" class="btn btn-sm btn-outline-secondary">Cancel</button>
+            <button type="button" id="qav-submit" class="btn btn-sm" style="background:#7c3aed;color:#fff;font-weight:600;border-radius:8px">
+                <i class="fas fa-plus me-1"></i> Add Vendor
+            </button>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
 <script>
+// ── Quick-add vendor modal ────────────────────────────────────────────
+document.getElementById('qav-submit').addEventListener('click', async () => {
+    const name  = document.getElementById('qav-name').value.trim();
+    const email = document.getElementById('qav-email').value.trim();
+    const phone = document.getElementById('qav-phone').value.trim();
+    const errEl = document.getElementById('qav-error');
+    errEl.textContent = '';
+
+    if (!name) { errEl.textContent = 'Vendor name is required.'; return; }
+
+    document.getElementById('qav-submit').disabled = true;
+    document.getElementById('qav-submit').innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Saving...';
+
+    try {
+        const res = await fetch('{{ route("accountant.vendors.quick_add") }}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+            body: JSON.stringify({ name, email, phone }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+            errEl.textContent = data.message || 'Failed to add vendor.';
+        } else {
+            const sel = document.getElementById('vendorSelect');
+            const opt = new Option(`${data.name} (${data.code})`, data.id, true, true);
+            sel.appendChild(opt);
+            document.getElementById('quickAddVendorModal').style.display = 'none';
+            document.getElementById('qav-form').reset();
+        }
+    } catch(e) {
+        errEl.textContent = 'Network error. Please try again.';
+    } finally {
+        document.getElementById('qav-submit').disabled = false;
+        document.getElementById('qav-submit').innerHTML = '<i class="fas fa-plus me-1"></i> Add Vendor';
+    }
+});
+
+// ── Line items ────────────────────────────────────────────────────────
 let lineIndex = 1;
 
 function recalc(el) {
