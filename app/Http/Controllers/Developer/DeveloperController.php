@@ -70,6 +70,11 @@ class DeveloperController extends Controller
                 'subscription_status' => 'active',
                 'payment_verified' => true,
             ]);
+
+            // Activate the company's admin user so they can login
+            User::where('company_id', $payment->company_id)
+                ->where('role', 'admin')
+                ->update(['is_active' => true]);
         }
 
         $payment->update([

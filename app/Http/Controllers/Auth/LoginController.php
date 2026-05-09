@@ -115,6 +115,11 @@ class LoginController extends Controller
     {
         $request->validate(['email' => 'required|email']);
 
+        // Guard: ensure MAIL_MAILER is configured before attempting to send
+        if (empty(config('mail.default')) || empty(config('mail.mailers.' . config('mail.default') . '.transport'))) {
+            return back()->withErrors(['email' => 'Password reset email is not configured. Please contact your administrator.']);
+        }
+
         $status = Password::sendResetLink($request->only('email'));
 
         return $status === Password::RESET_LINK_SENT
