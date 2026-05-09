@@ -317,6 +317,239 @@ class AccountantController extends Controller
         return redirect()->route('accountant.account_payable')->with('success', 'Bill recorded successfully!');
     }
 
+    public function quickAddCustomer(Request $request)
+    {
+        $request->validate([
+            'name'  => 'required|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'phone' => 'nullable|string|max:30',
+        ]);
+
+        $cid   = $this->companyId();
+        $count = Customer::where('company_id', $cid)->count() + 1;
+        $code  = 'CUST-' . str_pad($count, 4, '0', STR_PAD_LEFT);
+
+        $customer = Customer::create([
+            'company_id'    => $cid,
+            'customer_code' => $code,
+            'name'          => $request->name,
+            'email'         => $request->email,
+            'phone'         => $request->phone,
+            'credit_limit'  => 0,
+            'is_active'     => true,
+        ]);
+
+        AuditTrail::log('create', 'customer', $customer->id, [], $customer->toArray(), "Quick-added customer {$customer->name}");
+
+        return response()->json(['id' => $customer->id, 'name' => $customer->name, 'code' => $customer->customer_code]);
+    }
+
+    public function quickAddVendor(Request $request)
+    {
+        $request->validate([
+            'name'  => 'required|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'phone' => 'nullable|string|max:30',
+        ]);
+
+        $cid   = $this->companyId();
+        $count = Vendor::where('company_id', $cid)->count() + 1;
+        $code  = 'VND-' . str_pad($count, 4, '0', STR_PAD_LEFT);
+
+        $vendor = Vendor::create([
+            'company_id'  => $cid,
+            'vendor_code' => $code,
+            'name'        => $request->name,
+            'email'       => $request->email,
+            'phone'       => $request->phone,
+            'is_active'   => true,
+        ]);
+
+        AuditTrail::log('create', 'vendor', $vendor->id, [], $vendor->toArray(), "Quick-added vendor {$vendor->name}");
+
+        return response()->json(['id' => $vendor->id, 'name' => $vendor->name, 'code' => $vendor->vendor_code]);
+    }
+
+    // ===================== CUSTOMERS =====================
+    public function customers(Request $request)
+    {
+        $cid   = $this->companyId();
+        $query = Customer::where('company_id', $cid);
+
+        if ($request->search) {
+            $query->where(function ($q) use ($request) {
+                $q->where('name', 'like', '%'.$request->search.'%')
+                  ->orWhere('email', 'like', '%'.$request->search.'%')
+                  ->orWhere('customer_code', 'like', '%'.$request->search.'%');
+            });
+        }
+        if ($request->status === 'active')   $query->where('is_active', true);
+        if ($request->status === 'inactive') $query->where('is_active', false);
+
+        $customers = $query->latest()->paginate(15);
+        return view('accountant.customers', compact('customers'));
+    }
+
+    public function storeCustomer(Request $request)
+    {
+        $request->validate([
+            'name'         => 'required|string|max:255',
+            'email'        => 'nullable|email|max:255',
+            'phone'        => 'nullable|string|max:30',
+            'address'      => 'nullable|string|max:500',
+            'tax_number'   => 'nullable|string|max:50',
+            'credit_limit' => 'nullable|numeric|min:0',
+        ]);
+
+        $cid    = $this->companyId();
+        $count  = Customer::where('company_id', $cid)->count() + 1;
+        $code   = 'CUST-' . str_pad($count, 4, '0', STR_PAD_LEFT);
+
+        $customer = Customer::create([
+            'company_id'   => $cid,
+            'customer_code'=> $code,
+            'name'         => $request->name,
+            'email'        => $request->email,
+            'phone'        => $request->phone,
+            'address'      => $request->address,
+            'tax_number'   => $request->tax_number,
+            'credit_limit' => $request->credit_limit ?? 0,
+            'is_active'    => true,
+        ]);
+
+        AuditTrail::log('create', 'customer', $customer->id, [], $customer->toArray(), "Added customer {$customer->name}");
+        return back()->with('success', "Customer '{$customer->name}' added successfully!");
+    }
+
+    public function updateCustomer(Request $request, $id)
+    {
+        $customer = Customer::where('company_id', $this->companyId())->findOrFail($id);
+
+        $request->validate([
+            'name'         => 'required|string|max:255',
+            'email'        => 'nullable|email|max:255',
+            'phone'        => 'nullable|string|max:30',
+            'address'      => 'nullable|string|max:500',
+            'tax_number'   => 'nullable|string|max:50',
+            'credit_limit' => 'nullable|numeric|min:0',
+        ]);
+
+        $old = $customer->toArray();
+        $customer->update([
+            'name'         => $request->name,
+            'email'        => $request->email,
+            'phone'        => $request->phone,
+            'address'      => $request->address,
+            'tax_number'   => $request->tax_number,
+            'credit_limit' => $request->credit_limit ?? 0,
+            'is_active'    => $request->boolean('is_active', true),
+        ]);
+
+        AuditTrail::log('update', 'customer', $customer->id, $old, $customer->fresh()->toArray(), "Updated customer {$customer->name}");
+        return back()->with('success', "Customer '{$customer->name}' updated successfully!");
+    }
+
+    public function deleteCustomer($id)
+    {
+        $customer = Customer::where('company_id', $this->companyId())->findOrFail($id);
+
+        if ($customer->invoices()->exists()) {
+            return back()->with('error', "Cannot delete '{$customer->name}' — customer has existing invoices.");
+        }
+
+        AuditTrail::log('delete', 'customer', $customer->id, $customer->toArray(), [], "Deleted customer {$customer->name}");
+        $customer->delete();
+        return back()->with('success', "Customer deleted successfully.");
+    }
+
+    // ===================== VENDORS =====================
+    public function vendors(Request $request)
+    {
+        $cid   = $this->companyId();
+        $query = Vendor::where('company_id', $cid);
+
+        if ($request->search) {
+            $query->where(function ($q) use ($request) {
+                $q->where('name', 'like', '%'.$request->search.'%')
+                  ->orWhere('email', 'like', '%'.$request->search.'%')
+                  ->orWhere('vendor_code', 'like', '%'.$request->search.'%');
+            });
+        }
+        if ($request->status === 'active')   $query->where('is_active', true);
+        if ($request->status === 'inactive') $query->where('is_active', false);
+
+        $vendors = $query->latest()->paginate(15);
+        return view('accountant.vendors', compact('vendors'));
+    }
+
+    public function storeVendor(Request $request)
+    {
+        $request->validate([
+            'name'       => 'required|string|max:255',
+            'email'      => 'nullable|email|max:255',
+            'phone'      => 'nullable|string|max:30',
+            'address'    => 'nullable|string|max:500',
+            'tax_number' => 'nullable|string|max:50',
+        ]);
+
+        $cid   = $this->companyId();
+        $count = Vendor::where('company_id', $cid)->count() + 1;
+        $code  = 'VND-' . str_pad($count, 4, '0', STR_PAD_LEFT);
+
+        $vendor = Vendor::create([
+            'company_id'  => $cid,
+            'vendor_code' => $code,
+            'name'        => $request->name,
+            'email'       => $request->email,
+            'phone'       => $request->phone,
+            'address'     => $request->address,
+            'tax_number'  => $request->tax_number,
+            'is_active'   => true,
+        ]);
+
+        AuditTrail::log('create', 'vendor', $vendor->id, [], $vendor->toArray(), "Added vendor {$vendor->name}");
+        return back()->with('success', "Vendor '{$vendor->name}' added successfully!");
+    }
+
+    public function updateVendor(Request $request, $id)
+    {
+        $vendor = Vendor::where('company_id', $this->companyId())->findOrFail($id);
+
+        $request->validate([
+            'name'       => 'required|string|max:255',
+            'email'      => 'nullable|email|max:255',
+            'phone'      => 'nullable|string|max:30',
+            'address'    => 'nullable|string|max:500',
+            'tax_number' => 'nullable|string|max:50',
+        ]);
+
+        $old = $vendor->toArray();
+        $vendor->update([
+            'name'       => $request->name,
+            'email'      => $request->email,
+            'phone'      => $request->phone,
+            'address'    => $request->address,
+            'tax_number' => $request->tax_number,
+            'is_active'  => $request->boolean('is_active', true),
+        ]);
+
+        AuditTrail::log('update', 'vendor', $vendor->id, $old, $vendor->fresh()->toArray(), "Updated vendor {$vendor->name}");
+        return back()->with('success', "Vendor '{$vendor->name}' updated successfully!");
+    }
+
+    public function deleteVendor($id)
+    {
+        $vendor = Vendor::where('company_id', $this->companyId())->findOrFail($id);
+
+        if ($vendor->bills()->exists()) {
+            return back()->with('error', "Cannot delete '{$vendor->name}' — vendor has existing bills.");
+        }
+
+        AuditTrail::log('delete', 'vendor', $vendor->id, $vendor->toArray(), [], "Deleted vendor {$vendor->name}");
+        $vendor->delete();
+        return back()->with('success', "Vendor deleted successfully.");
+    }
+
     // ===================== CHART OF ACCOUNTS =====================
     public function chartOfAccount()
     {
