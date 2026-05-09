@@ -79,9 +79,17 @@
         </a>
     </div>
     <div class="col-6 col-md-3">
-        <a href="{{ route('accountant.customers') }}" class="nav-item-link"><span class="nav-icon"><i class="fas fa-users"></i></span> Customers</a>
-<a href="{{ route('accountant.vendors') }}" class="nav-item-link"><span class="nav-icon"><i class="fas fa-truck"></i></span> Vendors</a>
-<a href="{{ route('accountant.chart_of_account') }}" class="btn w-100 py-3" style="background:linear-gradient(135deg,#7c3aed,#5b21b6);color:white;border-radius:12px;font-weight:600;font-size:.85rem;text-decoration:none;display:flex;flex-direction:column;align-items:center;gap:6px">
+        <a href="{{ route('accountant.customers') }}" class="btn w-100 py-3" style="background:linear-gradient(135deg,#0891b2,#0e7490);color:white;border-radius:12px;font-weight:600;font-size:.85rem;text-decoration:none;display:flex;flex-direction:column;align-items:center;gap:6px">
+            <i class="fas fa-users fa-lg"></i> Customers
+        </a>
+    </div>
+    <div class="col-6 col-md-3">
+        <a href="{{ route('accountant.vendors') }}" class="btn w-100 py-3" style="background:linear-gradient(135deg,#059669,#047857);color:white;border-radius:12px;font-weight:600;font-size:.85rem;text-decoration:none;display:flex;flex-direction:column;align-items:center;gap:6px">
+            <i class="fas fa-truck fa-lg"></i> Vendors
+        </a>
+    </div>
+    <div class="col-6 col-md-3">
+        <a href="{{ route('accountant.chart_of_account') }}" class="btn w-100 py-3" style="background:linear-gradient(135deg,#7c3aed,#5b21b6);color:white;border-radius:12px;font-weight:600;font-size:.85rem;text-decoration:none;display:flex;flex-direction:column;align-items:center;gap:6px">
             <i class="fas fa-plus fa-lg"></i> Add New Account
         </a>
     </div>
