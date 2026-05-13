@@ -8,6 +8,7 @@ class Invoice extends Model {
     protected $casts = ['invoice_date'=>'date','due_date'=>'date','subtotal'=>'decimal:2','tax_amount'=>'decimal:2','total_amount'=>'decimal:2','paid_amount'=>'decimal:2','balance_due'=>'decimal:2'];
     public function company() { return $this->belongsTo(Company::class); }
     public function customer() { return $this->belongsTo(Customer::class); }
+    public function lines() { return $this->hasMany(InvoiceLine::class); }
     public function creator() { return $this->belongsTo(User::class, 'created_by'); }
     public function isOverdue(): bool { return $this->due_date < now() && !in_array($this->status, ['paid']); }
 }

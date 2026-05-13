@@ -8,5 +8,6 @@ class Bill extends Model {
     protected $casts = ['bill_date'=>'date','due_date'=>'date','subtotal'=>'decimal:2','tax_amount'=>'decimal:2','total_amount'=>'decimal:2','paid_amount'=>'decimal:2','balance_due'=>'decimal:2'];
     public function company() { return $this->belongsTo(Company::class); }
     public function vendor() { return $this->belongsTo(Vendor::class); }
+    public function lines() { return $this->hasMany(BillLine::class); }
     public function creator() { return $this->belongsTo(User::class, 'created_by'); }
 }
