@@ -34,11 +34,27 @@ class AuditorController extends Controller
         $todayTotal     = $todayJournals + $todayInvoices + $todayBills;
 
         // Abnormal / unusual activities
-        $avgAmount  = JournalEntry::where('company_id', $cid)->avg('total_debit') ?? 0;
-        $threshold  = max($avgAmount * 3, 10000);
-        $abnormalCount = JournalEntry::where('company_id', $cid)
-            ->where(fn($q) => $q->where('total_debit', '>', $threshold)->orWhere('total_credit', '>', $threshold))
+        $avgJournal  = JournalEntry::where('company_id', $cid)->avg('total_debit') ?? 0;
+        $avgInvoice  = Invoice::where('company_id', $cid)->avg('total_amount') ?? 0;
+        $avgBill     = Bill::where('company_id', $cid)->avg('total_amount') ?? 0;
+
+        $journalThreshold = max($avgJournal * 3, 10000);
+        $invoiceThreshold = max($avgInvoice * 3, 10000);
+        $billThreshold    = max($avgBill * 3, 10000);
+
+        $abnormalJournals = JournalEntry::where('company_id', $cid)
+            ->where(fn($q) => $q->where('total_debit', '>', $journalThreshold)->orWhere('total_credit', '>', $journalThreshold))
             ->count();
+
+        $abnormalInvoices = Invoice::where('company_id', $cid)
+            ->where('total_amount', '>', $invoiceThreshold)
+            ->count();
+
+        $abnormalBills = Bill::where('company_id', $cid)
+            ->where('total_amount', '>', $billThreshold)
+            ->count();
+
+        $abnormalCount = $abnormalJournals + $abnormalInvoices + $abnormalBills;
 
         // Failed login attempts today
         $failedLogins = LoginLog::where('company_id', $cid)
