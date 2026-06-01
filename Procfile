@@ -1,1 +1,1 @@
-web: php artisan migrate --force && php -S 0.0.0.0:$PORT -t public public/index.php
+web: php artisan migrate --force && php artisan db:seed --force && php -S 0.0.0.0:$PORT -t public public/index.php
