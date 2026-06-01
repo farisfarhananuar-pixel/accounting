@@ -18,7 +18,8 @@ nixPkgs = [
 [phases.install]
 cmds = [
   "composer install --no-dev --optimize-autoloader --no-interaction",
-  "chmod +x artisan"
+  "chmod +x artisan",
+  "cp .env.example .env"
 ]
 
 [phases.build]
