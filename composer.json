@@ -61,14 +61,14 @@
             "php-http/discovery": true
         },
         "audit": {
-            "abandoned": "ignore"
+            "abandoned": "ignore",
+            "ignore": [
+                "PKSA-mdq4-51ck-6kdq",
+                "PKSA-8qx3-n5y5-vvnd",
+                "PKSA-w7xr-vk7n-rstm"
+            ]
         }
     },
     "minimum-stability": "stable",
-    "prefer-stable": true,
-    "policy": {
-        "advisories": {
-            "block": false
-        }
-    }
+    "prefer-stable": true
 }
