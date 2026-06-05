@@ -536,11 +536,11 @@
         <div class="divider">Demo Credentials</div>
 
         <div class="demo-credentials">
-            <div class="demo-title"><i class="fas fa-key me-1"></i> Quick Test Accounts (ABC Trading)</div>
-            <div class="demo-row"><span>Accountant</span> <code>accountant_abc</code> / <code>Account@1234</code></div>
-            <div class="demo-row"><span>Manager</span> <code>manager_abc</code> / <code>Manager@1234</code></div>
-            <div class="demo-row"><span>Admin</span> <code>admin_abc</code> / <code>Admin@1234</code></div>
-            <div class="demo-row"><span>Auditor</span> <code>auditor_abc</code> / <code>Auditor@1234</code></div>
+            <div class="demo-title"><i class="fas fa-key me-1"></i> Quick Test Accounts (Tan Sim Tax Advisory)</div>
+            <div class="demo-row"><span>Accountant</span> <code>accountant_tansim</code> / <code>Account@1234</code></div>
+            <div class="demo-row"><span>Manager</span> <code>manager_tansim</code> / <code>Manager@1234</code></div>
+            <div class="demo-row"><span>Admin</span> <code>admin_tansim</code> / <code>Admin@1234</code></div>
+            <div class="demo-row"><span>Auditor</span> <code>auditor_tansim</code> / <code>Auditor@1234</code></div>
         </div>
 
         <p style="text-align:center;margin-top:24px;font-size:0.75rem;color:#9ca3af;">
