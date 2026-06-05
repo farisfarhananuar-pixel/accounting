@@ -568,10 +568,10 @@
 
         // Auto-fill username when role is selected
         const demoUsers = {
-            'executive_accountant': 'accountant_abc',
-            'manager': 'manager_abc',
-            'admin': 'admin_abc',
-            'auditor': 'auditor_abc',
+            'executive_accountant': 'accountant_tansim',
+            'manager': 'manager_tansim',
+            'admin': 'admin_tansim',
+            'auditor': 'auditor_tansim',
         };
 
         document.querySelectorAll('.role-btn').forEach(btn => {
