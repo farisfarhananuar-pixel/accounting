@@ -5,6 +5,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\JournalEntry;
+use App\Models\JournalEntryLine;
 use App\Models\Invoice;
 use App\Models\Bill;
 use App\Models\ChartOfAccount;
@@ -52,7 +53,24 @@ class ManagerController extends Controller
     public function approve(Request $request, $type, $id)
     {
         $cid = $this->companyId();
-        if ($type === 'journal') JournalEntry::where('company_id',$cid)->findOrFail($id)->update(['status'=>'approved','approved_by'=>Auth::id(),'approved_at'=>now()]);
+        if ($type === 'journal') {
+            $journal = JournalEntry::where('company_id',$cid)->with('lines')->findOrFail($id);
+            $journal->update(['status'=>'approved','approved_by'=>Auth::id(),'approved_at'=>now()]);
+
+            // Update current_balance on each affected chart of account
+            foreach ($journal->lines as $line) {
+                $account = ChartOfAccount::find($line->account_id);
+                if ($account) {
+                    // Assets/Expenses increase with debit, decrease with credit
+                    // Liabilities/Equity/Revenue increase with credit, decrease with debit
+                    if (in_array($account->account_type, ['asset', 'expense'])) {
+                        $account->increment('current_balance', $line->debit - $line->credit);
+                    } else {
+                        $account->increment('current_balance', $line->credit - $line->debit);
+                    }
+                }
+            }
+        }
         elseif ($type === 'invoice') Invoice::where('company_id',$cid)->findOrFail($id)->update(['status'=>'approved']);
         elseif ($type === 'bill') Bill::where('company_id',$cid)->findOrFail($id)->update(['status'=>'approved']);
         return back()->with('success', ucfirst($type).' approved.');

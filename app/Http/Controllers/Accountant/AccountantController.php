@@ -240,6 +240,14 @@ class AccountantController extends Controller
         return redirect()->route('accountant.account_receivable')->with('success', 'Invoice created successfully!');
     }
 
+    public function showInvoice($id)
+    {
+        $invoice = Invoice::where('company_id', $this->companyId())
+            ->with(['customer', 'lines', 'creator'])
+            ->findOrFail($id);
+        return view('accountant.invoice_show', compact('invoice'));
+    }
+
     // ===================== ACCOUNT PAYABLE =====================
     public function accountPayable(Request $request)
     {
@@ -315,6 +323,14 @@ class AccountantController extends Controller
         });
 
         return redirect()->route('accountant.account_payable')->with('success', 'Bill recorded successfully!');
+    }
+
+    public function showBill($id)
+    {
+        $bill = Bill::where('company_id', $this->companyId())
+            ->with(['vendor', 'lines', 'creator'])
+            ->findOrFail($id);
+        return view('accountant.bill_show', compact('bill'));
     }
 
     public function quickAddCustomer(Request $request)
@@ -693,7 +709,27 @@ class AccountantController extends Controller
         $bankAccs = ChartOfAccount::where('company_id', $cid)
             ->where('account_category', 'current_asset')
             ->where('account_name', 'like', '%Bank%')
-            ->get();
+            ->get()
+            ->map(function ($acc) use ($cid) {
+                $debits  = JournalEntryLine::where('account_id', $acc->id)
+                    ->whereHas('journalEntry', fn($q) => $q->where('company_id', $cid)->where('status', 'approved'))
+                    ->sum('debit');
+                $credits = JournalEntryLine::where('account_id', $acc->id)
+                    ->whereHas('journalEntry', fn($q) => $q->where('company_id', $cid)->where('status', 'approved'))
+                    ->sum('credit');
+                // For asset accounts: balance = opening + debits - credits
+                $acc->computed_balance = $acc->opening_balance + $debits - $credits;
+
+                // Latest 10 approved transactions for this bank account
+                $acc->recent_transactions = JournalEntryLine::where('account_id', $acc->id)
+                    ->whereHas('journalEntry', fn($q) => $q->where('company_id', $cid)->where('status', 'approved'))
+                    ->with('journalEntry')
+                    ->latest()
+                    ->take(10)
+                    ->get();
+                return $acc;
+            });
+
         return view('accountant.bank_reconcilation', compact('bankAccs'));
     }
 
