@@ -134,7 +134,7 @@ class AccountantController extends Controller
 
     public function submitJournal($id)
     {
-        $entry = JournalEntry::where('company_id', $this->companyId())->where('created_by', auth()->id())->findOrFail($id);
+        $entry = JournalEntry::where('company_id', $this->companyId())->findOrFail($id);
 
         if (!in_array($entry->status, ['draft', 'rejected'])) {
             return back()->with('error', 'Only draft or rejected entries can be submitted.');

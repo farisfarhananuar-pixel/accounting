@@ -147,4 +147,61 @@ class AdminController extends Controller
         $users = User::where('company_id', $cid)->orderBy('role')->get();
         return view('admin.create_roles', compact('users'));
     }
+
+    // ===================== TRANSACTION MANAGEMENT =====================
+    public function transactions(Request $request)
+    {
+        $cid  = $this->cid();
+        $type = $request->get('type', 'journal');
+
+        $journals = JournalEntry::where('company_id', $cid)
+            ->with('creator')
+            ->latest()
+            ->get();
+
+        $invoices = Invoice::where('company_id', $cid)
+            ->with('customer', 'creator')
+            ->latest()
+            ->get();
+
+        $bills = Bill::where('company_id', $cid)
+            ->with('vendor', 'creator')
+            ->latest()
+            ->get();
+
+        return view('admin.transactions', compact('type', 'journals', 'invoices', 'bills'));
+    }
+
+    public function deleteJournal($id)
+    {
+        $entry = JournalEntry::where('company_id', $this->cid())->findOrFail($id);
+
+        AuditTrail::log('delete', 'journal_entry', $entry->id, $entry->toArray(), [], "Admin force-deleted journal entry {$entry->entry_number}");
+        $entry->lines()->delete();
+        $entry->delete();
+
+        return back()->with('success', "Journal entry {$entry->entry_number} deleted successfully.");
+    }
+
+    public function deleteInvoice($id)
+    {
+        $invoice = Invoice::where('company_id', $this->cid())->findOrFail($id);
+
+        AuditTrail::log('delete', 'invoice', $invoice->id, $invoice->toArray(), [], "Admin force-deleted invoice {$invoice->invoice_number}");
+        $invoice->lines()->delete();
+        $invoice->delete();
+
+        return back()->with('success', "Invoice {$invoice->invoice_number} deleted successfully.");
+    }
+
+    public function deleteBill($id)
+    {
+        $bill = Bill::where('company_id', $this->cid())->findOrFail($id);
+
+        AuditTrail::log('delete', 'bill', $bill->id, $bill->toArray(), [], "Admin force-deleted bill {$bill->bill_number}");
+        $bill->lines()->delete();
+        $bill->delete();
+
+        return back()->with('success', "Bill {$bill->bill_number} deleted successfully.");
+    }
 }
