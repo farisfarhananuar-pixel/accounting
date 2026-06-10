@@ -749,13 +749,29 @@ class AccountantController extends Controller
         $cid  = $this->companyId();
         $year = now()->year;
         $map  = [
-            'JE'   => JournalEntry::class,
-            'INV'  => Invoice::class,
-            'BILL' => Bill::class,
+            'JE'   => [JournalEntry::class, 'entry_number'],
+            'INV'  => [Invoice::class, 'invoice_number'],
+            'BILL' => [Bill::class, 'bill_number'],
         ];
-        $model = $map[$prefix] ?? JournalEntry::class;
-        $count = $model::where('company_id', $cid)->whereYear('created_at', $year)->count() + 1;
-        return "{$prefix}-{$year}-" . str_pad($count, 4, '0', STR_PAD_LEFT);
+        [$model, $column] = $map[$prefix] ?? [JournalEntry::class, 'entry_number'];
+
+        // Use MAX on the numeric suffix to avoid duplicates when rows are deleted
+        $pattern = "{$prefix}-{$year}-%";
+        $last = $model::where('company_id', $cid)
+            ->where($column, 'like', $pattern)
+            ->orderByRaw("CAST(SUBSTRING_INDEX({$column}, '-', -1) AS UNSIGNED) DESC")
+            ->value($column);
+
+        $next = $last ? ((int) substr($last, strrpos($last, '-') + 1)) + 1 : 1;
+
+        // Safety loop: retry if number already exists (race condition guard)
+        $candidate = "{$prefix}-{$year}-" . str_pad($next, 4, '0', STR_PAD_LEFT);
+        while ($model::where('company_id', $cid)->where($column, $candidate)->exists()) {
+            $next++;
+            $candidate = "{$prefix}-{$year}-" . str_pad($next, 4, '0', STR_PAD_LEFT);
+        }
+
+        return $candidate;
     }
 
     private function getAccountBalance(int $cid, string $type, ?int $year = null, ?string $month = null): array
