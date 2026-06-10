@@ -73,6 +73,12 @@ Route::middleware(['auth', 'role:admin', 'company.scope'])->prefix('admin')->nam
     Route::delete('/users/{user}', [AdminController::class, 'deleteUser'])->name('users.delete');
     Route::post('/users/{user}/toggle-status', [AdminController::class, 'toggleUserStatus'])->name('users.toggle');
     Route::get('/create-roles', [AdminController::class, 'createRoles'])->name('create_roles');
+
+    // Transaction Management
+    Route::get('/transactions', [AdminController::class, 'transactions'])->name('transactions');
+    Route::delete('/transactions/journal/{id}', [AdminController::class, 'deleteJournal'])->name('transactions.journal.delete');
+    Route::delete('/transactions/invoice/{id}', [AdminController::class, 'deleteInvoice'])->name('transactions.invoice.delete');
+    Route::delete('/transactions/bill/{id}', [AdminController::class, 'deleteBill'])->name('transactions.bill.delete');
 });
 
 /*

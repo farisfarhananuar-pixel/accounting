@@ -4,6 +4,8 @@
 <a href="{{ route('admin.dashboard') }}" class="nav-item-link"><span class="nav-icon"><i class="fas fa-th-large"></i></span> Dashboard</a>
 <a href="{{ route('admin.users') }}" class="nav-item-link"><span class="nav-icon"><i class="fas fa-users"></i></span> Manage Users</a>
 <a href="{{ route('admin.create_roles') }}" class="nav-item-link active"><span class="nav-icon"><i class="fas fa-user-shield"></i></span> Create Roles</a>
+<span class="nav-section-title">Data Management</span>
+<a href="{{ route('admin.transactions') }}" class="nav-item-link {{ request()->routeIs('admin.transactions')?'active':'' }}"><span class="nav-icon"><i class="fas fa-trash-alt"></i></span> Manage Transactions</a>
 @endsection
 @section('content')
 <div class="row g-3 mb-4">
