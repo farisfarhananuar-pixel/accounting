@@ -755,9 +755,10 @@ class AccountantController extends Controller
         ];
         [$model, $column] = $map[$prefix] ?? [JournalEntry::class, 'entry_number'];
 
-        // Use MAX on the numeric suffix to avoid duplicates when rows are deleted
+        // Include soft-deleted records to avoid reusing deleted entry numbers
         $pattern = "{$prefix}-{$year}-%";
-        $last = $model::where('company_id', $cid)
+        $last = $model::withTrashed()
+            ->where('company_id', $cid)
             ->where($column, 'like', $pattern)
             ->orderByRaw("CAST(SUBSTRING_INDEX({$column}, '-', -1) AS UNSIGNED) DESC")
             ->value($column);

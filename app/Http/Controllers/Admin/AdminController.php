@@ -177,8 +177,8 @@ class AdminController extends Controller
         $entry = JournalEntry::where('company_id', $this->cid())->findOrFail($id);
 
         AuditTrail::log('delete', 'journal_entry', $entry->id, $entry->toArray(), [], "Admin force-deleted journal entry {$entry->entry_number}");
-        $entry->lines()->delete();
-        $entry->delete();
+        $entry->lines()->forceDelete();
+        $entry->forceDelete();
 
         return back()->with('success', "Journal entry {$entry->entry_number} deleted successfully.");
     }
@@ -188,8 +188,8 @@ class AdminController extends Controller
         $invoice = Invoice::where('company_id', $this->cid())->findOrFail($id);
 
         AuditTrail::log('delete', 'invoice', $invoice->id, $invoice->toArray(), [], "Admin force-deleted invoice {$invoice->invoice_number}");
-        $invoice->lines()->delete();
-        $invoice->delete();
+        $invoice->lines()->forceDelete();
+        $invoice->forceDelete();
 
         return back()->with('success', "Invoice {$invoice->invoice_number} deleted successfully.");
     }
@@ -199,8 +199,8 @@ class AdminController extends Controller
         $bill = Bill::where('company_id', $this->cid())->findOrFail($id);
 
         AuditTrail::log('delete', 'bill', $bill->id, $bill->toArray(), [], "Admin force-deleted bill {$bill->bill_number}");
-        $bill->lines()->delete();
-        $bill->delete();
+        $bill->lines()->forceDelete();
+        $bill->forceDelete();
 
         return back()->with('success', "Bill {$bill->bill_number} deleted successfully.");
     }
