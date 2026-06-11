@@ -86,8 +86,14 @@ class ManagerController extends Controller
             // Auto-create journal entry if both accounts exist
             if ($arAccount && $revenueAccount) {
                 $year = now()->year;
-                $count = JournalEntry::where('company_id',$cid)->whereYear('created_at',$year)->count() + 1;
-                $entryNum = 'JE-'.$year.'-'.str_pad($count,4,'0',STR_PAD_LEFT);
+                $prefix = $cid.'-JE-'.$year.'-';
+                $last = JournalEntry::where('company_id',$cid)
+                    ->whereYear('created_at',$year)
+                    ->where('entry_number','like','JE-'.$year.'-%')
+                    ->orderByRaw('CAST(SUBSTRING_INDEX(entry_number, "-", -1) AS UNSIGNED) DESC')
+                    ->value('entry_number');
+                $seq = $last ? ((int) substr($last, strrpos($last,'-')+1)) + 1 : 1;
+                $entryNum = 'JE-'.$year.'-'.str_pad($seq,4,'0',STR_PAD_LEFT);
 
                 $je = JournalEntry::create([
                     'company_id'   => $cid,
@@ -144,8 +150,13 @@ class ManagerController extends Controller
 
             if ($apAccount && $expenseAccount) {
                 $year = now()->year;
-                $count = JournalEntry::where('company_id',$cid)->whereYear('created_at',$year)->count() + 1;
-                $entryNum = 'JE-'.$year.'-'.str_pad($count,4,'0',STR_PAD_LEFT);
+                $last = JournalEntry::where('company_id',$cid)
+                    ->whereYear('created_at',$year)
+                    ->where('entry_number','like','JE-'.$year.'-%')
+                    ->orderByRaw('CAST(SUBSTRING_INDEX(entry_number, "-", -1) AS UNSIGNED) DESC')
+                    ->value('entry_number');
+                $seq = $last ? ((int) substr($last, strrpos($last,'-')+1)) + 1 : 1;
+                $entryNum = 'JE-'.$year.'-'.str_pad($seq,4,'0',STR_PAD_LEFT);
 
                 $je = JournalEntry::create([
                     'company_id'   => $cid,
