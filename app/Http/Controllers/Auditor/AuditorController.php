@@ -172,11 +172,13 @@ class AuditorController extends Controller
         $cid   = $this->cid();
         $query = JournalEntry::where('company_id', $cid)->with('creator', 'approver', 'rejecter');
 
-        if ($request->status)    $query->where('status', $request->status);
-        if ($request->user_id)   $query->where('created_by', $request->user_id);
-        if ($request->date_from) $query->whereDate('entry_date', '>=', $request->date_from);
-        if ($request->date_to)   $query->whereDate('entry_date', '<=', $request->date_to);
-        if ($request->search)    $query->where(fn($q) =>
+        if ($request->status)     $query->where('status', $request->status);
+        if ($request->user_id)    $query->where('created_by', $request->user_id);
+        if ($request->date_from)  $query->whereDate('entry_date', '>=', $request->date_from);
+        if ($request->date_to)    $query->whereDate('entry_date', '<=', $request->date_to);
+        if ($request->min_amount) $query->where('total_debit', '>=', $request->min_amount);
+        if ($request->max_amount) $query->where('total_debit', '<=', $request->max_amount);
+        if ($request->search)     $query->where(fn($q) =>
             $q->where('entry_number', 'like', '%'.$request->search.'%')
               ->orWhere('description', 'like', '%'.$request->search.'%')
         );
