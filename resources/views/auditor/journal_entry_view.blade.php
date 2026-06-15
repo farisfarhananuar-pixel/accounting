@@ -5,6 +5,7 @@
 @section('content')
 <div class="chart-card mb-4">
     <form method="GET" class="row g-2 align-items-end">
+        {{-- Row 1: Search, Status, User, Date From, Date To, Buttons --}}
         <div class="col-md-3">
             <label class="form-label" style="font-size:.78rem;font-weight:600">Search</label>
             <input type="text" name="search" class="form-control form-control-sm" placeholder="Entry no. or description..." value="{{ request('search') }}">
@@ -40,6 +41,40 @@
             <button type="submit" class="btn btn-green btn-sm flex-fill"><i class="fas fa-search"></i></button>
             <a href="{{ route('auditor.journal_entries') }}" class="btn btn-sm btn-outline-secondary px-2">✕</a>
         </div>
+
+        {{-- Row 2: Amount Range Filter --}}
+        <div class="col-12">
+            <div class="row g-2 align-items-end">
+                <div class="col-auto">
+                    <label class="form-label mb-0" style="font-size:.78rem;font-weight:600;color:#374151">
+                        <i class="fas fa-filter me-1" style="color:var(--green-main)"></i>Filter by Amount (RM)
+                    </label>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label" style="font-size:.75rem;color:#6b7280">Min Amount (RM)</label>
+                    <input type="number" name="min_amount" class="form-control form-control-sm" placeholder="e.g. 10000" min="0" step="0.01" value="{{ request('min_amount') }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label" style="font-size:.75rem;color:#6b7280">Max Amount (RM)</label>
+                    <input type="number" name="max_amount" class="form-control form-control-sm" placeholder="e.g. 100000" min="0" step="0.01" value="{{ request('max_amount') }}">
+                </div>
+                <div class="col-auto">
+                    @if(request('min_amount') || request('max_amount'))
+                    <span class="badge" style="background:#fef3c7;color:#92400e;font-size:.75rem;padding:5px 10px;border-radius:8px">
+                        <i class="fas fa-exclamation-triangle me-1"></i>
+                        Showing amounts
+                        @if(request('min_amount') && request('max_amount'))
+                            between RM {{ number_format(request('min_amount'),2) }} – RM {{ number_format(request('max_amount'),2) }}
+                        @elseif(request('min_amount'))
+                            ≥ RM {{ number_format(request('min_amount'),2) }}
+                        @else
+                            ≤ RM {{ number_format(request('max_amount'),2) }}
+                        @endif
+                    </span>
+                    @endif
+                </div>
+            </div>
+        </div>
     </form>
 </div>
 
@@ -66,7 +101,18 @@
                         <small style="color:#dc2626"><i class="fas fa-times me-1"></i>{{ $e->rejecter->name }}</small>
                         @else <small class="text-muted">—</small> @endif
                     </td>
-                    <td><strong>{{ number_format($e->total_debit,2) }}</strong></td>
+                    <td>
+                        <strong>{{ number_format($e->total_debit,2) }}</strong>
+                        @if($e->total_debit >= 50000)
+                        <span class="ms-1 badge" style="background:#fef2f2;color:#dc2626;font-size:.65rem;padding:2px 6px;border-radius:6px;border:1px solid #fecaca">
+                            <i class="fas fa-exclamation-triangle me-1"></i>Large
+                        </span>
+                        @elseif($e->total_debit >= 10000)
+                        <span class="ms-1 badge" style="background:#fffbeb;color:#d97706;font-size:.65rem;padding:2px 6px;border-radius:6px;border:1px solid #fde68a">
+                            <i class="fas fa-exclamation me-1"></i>High
+                        </span>
+                        @endif
+                    </td>
                     <td>{!! $e->status_badge !!}</td>
                     <td>
                         <button class="btn btn-sm px-2" style="background:#f0fdf9;color:var(--green-main);border-radius:6px;font-size:.72rem;border:1px solid #a7f3d0"
